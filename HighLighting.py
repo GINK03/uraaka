@@ -12,7 +12,7 @@ from collections import namedtuple
 import click
 import psutil
 
-Tweet = namedtuple('Tweet', ['tweet', 'username'])
+Tweet = namedtuple('Tweet', ['tweet', 'username', 'photos'])
 
 HOME = E.get("HOME")
 HERE = Path(__name__).resolve().parent
@@ -38,13 +38,19 @@ def proc(arg):
                 except:
                     continue
                 # print(obj)
-                tweets.append(Tweet(obj['tweet'], f"@{obj['username']}"))
+                tweets.append(Tweet(obj['tweet'], f"@{obj['username']}", obj["photos"]))
         except:
             continue
 
         require_size = 1
-        # idxs = [idx for idx, tweet in enumerate(tweets) if keyword in set(mecab.parse(tweet.tweet.lower()).split())]
-        idxs = [idx for idx, tweet in enumerate(tweets) if keyword in tweet.tweet.lower()]
+        """
+        環境変数 MODE=="wakachi" の時、wakachi書きで評価する
+        NOTE: この書き方はOK
+        """
+        if E.get("MODE") == "wakachi":
+            idxs = [idx for idx, tweet in enumerate(tweets) if keyword in set(mecab.parse(tweet.tweet.lower()).split())]
+        else:
+            idxs = [idx for idx, tweet in enumerate(tweets) if keyword in tweet.tweet.lower()]
 
         for idx in idxs:
             batch = tweets[min(idx - 3, 0): idx + 3]
@@ -55,16 +61,13 @@ def proc(arg):
                     term_freq[term] = 0
                 term_freq[term] += 1
 
-            for tweet in [b.tweet for b in batch]:
-                img = re.search(r'(pic.twitter.com/[a-z][A-Z]{1,})$', tweet)
-                if img is None:
-                    continue
-                img = img.group(1)
-                # print(tweet)
-                # print(img)
-                if img not in term_freq:
-                    term_freq[img] = 0
-                term_freq[img] += 1
+            for photos in [b.photos for b in batch]:
+                for photo in photos:
+                    if photo is None:
+                        continue
+                    if photo not in term_freq:
+                        term_freq[photo] = 0
+                    term_freq[photo] += 1
 
             for username in [b.username for b in batch]:
                 if username not in term_freq:
@@ -81,14 +84,13 @@ def proc(arg):
                         term_freq2[term] = 0
                     term_freq2[term] += 1
 
-                for tweet in [b.tweet for b in batch2]:
-                    img = re.search(r'(pic.twitter.com/[a-z][A-Z]{1,})$', tweet)
-                    if img is None:
-                        continue
-                    img = img.group(1)
-                    if img not in term_freq2:
-                        term_freq2[img] = 0
-                    term_freq2[img] += 1
+                for photos in [b.photos for b in batch2]:
+                    for photo in photos:
+                        if photo is None:
+                            continue
+                        if photo not in term_freq2:
+                            term_freq2[photo] = 0
+                        term_freq2[photo] += 1
 
                 for username in [b.username for b in batch2]:
                     if username not in term_freq2:

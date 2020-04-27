@@ -18,7 +18,7 @@ for file in files:
     df1.to_csv(f'{HERE}/var/filter/users_{name}', index=None)
 
     ## term
-    df2 = df[df['term'].apply(lambda x:'@' not in str(x) and "pic." not in str(x))]
+    df2 = df[df['term'].apply(lambda x:'@' not in str(x) and ".jpg" not in str(x))]
     t2 = sorted(df2[df2.rel >= 0.5].total.tolist())
     th = t2[int(len(t2) * 9/10)]
     print(th)
@@ -26,7 +26,7 @@ for file in files:
     df2.to_csv(f'{HERE}/var/filter/terms_{name}', index=None)
 
     ## pics
-    df3 = df[df['term'].apply(lambda x:"pic." in str(x))]
+    df3 = df[df['term'].apply(lambda x:".jpg" in str(x) or ".png" in str(x))]
     t3 = sorted(df3[df3.rel >= 0.5].total.tolist())
     th = t3[int(len(t3) * 5/10)]
     print(th)
